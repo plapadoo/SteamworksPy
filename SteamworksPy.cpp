@@ -537,6 +537,18 @@ SW_PY bool StoreStats(){
 	}
 	return SteamUserStats()->StoreStats();
 }
+SW_PY void SetFindLeaderboardResultCallback(LeaderboardFindResultCallback_t callback){
+	if(SteamUserStats() == NULL){
+		return;
+	}
+	leaderboard.SetLeaderboardFindResultCallback(callback);
+}
+SW_PY void FindLeaderboard(const char *pchLeaderboardName){
+	if(SteamUserStats() == NULL){
+		return;
+	}
+	leaderboard.FindLeaderboard(pchLeaderboardName);
+}
 //SW_PY const char* GetLeaderboardName()
 //SW_PY int GetLeaderboardEntryCount()
 //SW_PY void DownloadLeaderboardEntries()
@@ -743,19 +755,4 @@ SW_PY bool Workshop_GetItemDownloadInfo(PublishedFileId_t publishedFileID, uint6
 		return false;
 	}
 	return SteamUGC()->GetItemDownloadInfo(publishedFileID, punBytesDownloaded, punBytesTotal);
-}
-//-----------------------------------------------
-// Steam Leaderboard
-//-----------------------------------------------
-SW_PY void Leaderboard_SetFindLeaderboardResultCallback(LeaderboardFindResultCallback_t callback){
-	if(SteamUserStats() == NULL){
-		return;
-	}
-	leaderboard.SetLeaderboardFindResultCallback(callback);
-}
-SW_PY void Leaderboard_FindLeaderboard(const char *pchLeaderboardName){
-	if(SteamUserStats() == NULL){
-		return;
-	}
-	leaderboard.FindLeaderboard(pchLeaderboardName);
 }

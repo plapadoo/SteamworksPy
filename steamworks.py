@@ -165,8 +165,8 @@ class Steam:
 		Steam.cdll.SetStatFloat.restype = bool
 		Steam.cdll.StoreStats.restype = bool
 		Steam.cdll.ClearAchievement.restype = bool
-		Steam.cdll.Leaderboard_FindLeaderboard.restype = bool
-		Steam.cdll.Leaderboard_FindLeaderboard.argtypes = [c_char_p]
+		Steam.cdll.FindLeaderboard.restype = bool
+		Steam.cdll.FindLeaderboard.argtypes = [c_char_p]
 #		Steam.cdll.GetLeaderboardName.restype = c_char_p
 #		Steam.cdll.GetLeaderboardEntryCount.restype = int
 #		Steam.cdll.DownloadLeaderboardEntries.restype = None
@@ -598,7 +598,7 @@ class SteamUserStats:
 			print("setting callback")
 			cls.findLeaderboardResultCallback = cls.FIND_LEADERBORAD_RESULT_CALLBACK_TYPE (callback)
 
-			Steam.cdll.Leaderboard_SetFindLeaderboardResultCallback(cls.findLeaderboardResultCallback)
+			Steam.cdll.SetFindLeaderboardResultCallback(cls.findLeaderboardResultCallback)
 		else:
 			return False
 	#
@@ -613,7 +613,7 @@ class SteamUserStats:
 			if callback != None:
 				SteamUserStats.SetFindLeaderboardResultCallback(callback)
 
-			Steam.cdll.Leaderboard_FindLeaderboard(name.encode())
+			Steam.cdll.FindLeaderboard(name.encode())
 			return True
 		else:
 			return False
