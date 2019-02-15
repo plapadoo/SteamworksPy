@@ -595,7 +595,6 @@ class SteamUserStats:
 	@classmethod
 	def SetFindLeaderboardResultCallback(cls, callback):
 		if Steam.isSteamLoaded():
-			print("setting callback")
 			cls.findLeaderboardResultCallback = cls.FIND_LEADERBORAD_RESULT_CALLBACK_TYPE (callback)
 
 			Steam.cdll.SetFindLeaderboardResultCallback(cls.findLeaderboardResultCallback)
@@ -608,7 +607,6 @@ class SteamUserStats:
 	# callback -- The function to call once the find returns a result
 	@staticmethod
 	def FindLeaderboard(name, callback = None):
-		print("looking for leaderboard named " + name)
 		if Steam.isSteamLoaded():
 			if callback != None:
 				SteamUserStats.SetFindLeaderboardResultCallback(callback)
