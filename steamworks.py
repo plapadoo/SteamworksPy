@@ -21,6 +21,14 @@ FriendFlags = {  # regular friend
     'All': 0xFFFF,
     }
 #------------------------------------------------
+# User Stats
+#------------------------------------------------
+LeaderboardUploadScoreMethod = {
+    'None': 0,
+    'KeepBest': 1,
+    'ForceUpdate': 2,
+    }
+#------------------------------------------------
 # Workshop File Types
 #------------------------------------------------
 WorkshopFileType = {
@@ -172,8 +180,8 @@ class Steam:
 #		Steam.cdll.DownloadLeaderboardEntries.restype = None
 #		Steam.cdll.DownloadLeaderboardEntries.argtypes = [int, int, int]
 #		Steam.cdll.DownloadLeaderboardEntriesForUsers.restype = None
-#		Steam.cdll.UploadLeaderboardScore.restype = None
-#		Steam.cdll.UploadLeaderboardScore.argtypes = [int, bool]
+		Steam.cdll.UploadLeaderboardScore.restype = bool
+		Steam.cdll.UploadLeaderboardScore.argtypes = [c_uint64, c_uint32, c_uint32, POINTER(c_uint32), c_uint32]
 #		Steam.cdll.GetDownloadLeaderboardEntry.restype = None
 #		Steam.cdll.UpdateLeaderboardHandle.restype = None
 #		Steam.cdll.GetLeadboardHandle.restype = c_uint64
@@ -600,6 +608,28 @@ class SteamUserStats:
 			Steam.cdll.SetFindLeaderboardResultCallback(cls.findLeaderboardResultCallback)
 		else:
 			return False
+
+	# A class that describes Steam's LeaderboardScoreUploaded_t C struct
+	class LeaderboardScoreUploaded_t(Structure):
+		_fields_ = [
+			("success", c_bool),
+			("leaderboardHandle", c_uint64),
+			("score", c_int32),
+			("scoreChanged", c_bool),
+			("globalRankNew", c_int),
+			("globalRankPrevious", c_int)
+		]
+	UPLOAD_LEADERBORAD_SCORE_CALLBACK_TYPE = CFUNCTYPE(None, LeaderboardScoreUploaded_t)
+	uploadLeaderboardScoreCallback = None
+
+	@classmethod
+	def SetUploadLeaderboardScoreCallback(cls, callback):
+		if Steam.isSteamLoaded():
+			cls.uploadLeaderboardScoreCallback = cls.UPLOAD_LEADERBORAD_SCORE_CALLBACK_TYPE (callback)
+
+			Steam.cdll.SetUploadLeaderboardScoreCallback(cls.uploadLeaderboardScoreCallback)
+		else:
+			return False
 	#
 	# Find Leaderboard by name
 	#
@@ -607,14 +637,27 @@ class SteamUserStats:
 	# callback -- The function to call once the find returns a result
 	@staticmethod
 	def FindLeaderboard(name, callback = None):
-		if Steam.isSteamLoaded():
-			if callback != None:
-				SteamUserStats.SetFindLeaderboardResultCallback(callback)
-
+		if Steam.isSteamLoaded() and callback != None:
+			SteamUserStats.SetFindLeaderboardResultCallback(callback)
 			Steam.cdll.FindLeaderboard(name.encode())
 			return True
 		else:
 			return False
+	#
+	# Upload Leaderboard score
+	@staticmethod
+	def UploadLeaderboardScore(leaderboard, scoremethod, score, scoredetails, scoredetailscount, callback = None):
+		if Steam.isSteamLoaded() and callback != None:
+			SteamUserStats.SetUploadLeaderboardScoreCallback(callback)
+			scoredetailscount = 0
+			pvecScoreDetails = (c_uint32 * scoredetailscount)()
+			pvecScoreDetails = None
+			print("leaderborad %d with scoremethod %d with score %d with scoredetails %s with scoredetailscint %d" % (leaderboard, scoremethod, score, pvecScoreDetails, scoredetailscount))
+			Steam.cdll.UploadLeaderboardScore(leaderboard, scoremethod, score, pvecScoreDetails, scoredetailscount)
+			return True
+		else:
+			return False
+
 #------------------------------------------------
 # Class for Steam Utilities
 #------------------------------------------------

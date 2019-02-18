@@ -80,6 +80,7 @@ typedef void(*CreateItemResultCallback_t) (CreateItemResult_t);
 typedef void(*SubmitItemUpdateResultCallback_t) (SubmitItemUpdateResult_t);
 typedef void(*ItemInstalledCallback_t) (ItemInstalled_t);
 typedef void(*LeaderboardFindResultCallback_t) (LeaderboardFindResult_t);
+typedef void(*LeaderboardScoreUploadedCallback_t) (LeaderboardScoreUploaded_t);
 //-----------------------------------------------
 // Workshop Class
 //-----------------------------------------------
@@ -143,20 +144,37 @@ class Leaderboard
 {
 public:
 	LeaderboardFindResultCallback_t _pyLeaderboardFindResultCallback;
+	LeaderboardScoreUploadedCallback_t _pyLeaderboardScoreUploadedCallback;
 
 	CCallResult<Leaderboard, LeaderboardFindResult_t> _leaderboardFindResultCallback;
+	CCallResult<Leaderboard, LeaderboardScoreUploaded_t> _leaderboardScoreUploadedCallback;
 
 	void SetLeaderboardFindResultCallback(LeaderboardFindResultCallback_t callback){
 		_pyLeaderboardFindResultCallback = callback;
+	}
+	void SetLeaderboardScoreUploadedCallback(LeaderboardScoreUploadedCallback_t callback){
+		printf("upload leaderboard set callback2\n");
+		_pyLeaderboardScoreUploadedCallback = callback;
 	}
 	void FindLeaderboard(const char *pchLeaderboardName){
 		SteamAPICall_t leaderboardFindResultCall = SteamUserStats()->FindLeaderboard(pchLeaderboardName);
 		_leaderboardFindResultCallback.Set(leaderboardFindResultCall, this, &Leaderboard::OnLeaderboardFindResult);
 	}
+	void UploadLeaderboardScore(SteamLeaderboard_t hSteamLeaderboard, ELeaderboardUploadScoreMethod eLeaderboardUploadScoreMethod, int32 nScore, const int32 *pScoreDetails, int cScoreDetailsCount){
+		printf("upload leaderboard score called2\n");
+		SteamAPICall_t leaderboardScoreUploadedCall = SteamUserStats()->UploadLeaderboardScore(hSteamLeaderboard, eLeaderboardUploadScoreMethod, nScore, pScoreDetails, cScoreDetailsCount);
+		_leaderboardScoreUploadedCallback.Set(leaderboardScoreUploadedCall, this, &Leaderboard::OnLeaderboardScoreUploaded);
+	}
 private:
 	void OnLeaderboardFindResult(LeaderboardFindResult_t* leaderboardFindResult, bool bIOFailure){
 		if(_pyLeaderboardFindResultCallback != nullptr){
 			_pyLeaderboardFindResultCallback(*leaderboardFindResult);
+		}
+	}
+	void OnLeaderboardScoreUploaded(LeaderboardScoreUploaded_t* leaderboardScoreUploaded, bool bIOFailure){
+		printf("upload leaderboard callback fired\n");
+		if(_pyLeaderboardScoreUploadedCallback != nullptr){
+			_pyLeaderboardScoreUploadedCallback(*leaderboardScoreUploaded);
 		}
 	}
 };
@@ -549,11 +567,24 @@ SW_PY void FindLeaderboard(const char *pchLeaderboardName){
 	}
 	leaderboard.FindLeaderboard(pchLeaderboardName);
 }
+SW_PY void SetUploadLeaderboardScoreCallback(LeaderboardScoreUploadedCallback_t callback){
+		printf("upload leaderboard set callback\n");
+	if(SteamUserStats() == NULL){
+		return;
+	}
+	leaderboard.SetLeaderboardScoreUploadedCallback(callback);
+}
+SW_PY void UploadLeaderboardScore(SteamLeaderboard_t hSteamLeaderboard, ELeaderboardUploadScoreMethod eLeaderboardUploadScoreMethod, int32 nScore, const int32 *pScoreDetails, int cScoreDetailsCount){
+		printf("upload leaderboard score called\n");
+	if(SteamUserStats() == NULL){
+		return;
+	}
+	leaderboard.UploadLeaderboardScore(hSteamLeaderboard, eLeaderboardUploadScoreMethod, nScore, pScoreDetails, cScoreDetailsCount);
+}
 //SW_PY const char* GetLeaderboardName()
 //SW_PY int GetLeaderboardEntryCount()
 //SW_PY void DownloadLeaderboardEntries()
 //SW_PY void DownloadLeaderboardEntriesForUsers()
-//SW_PY void UploadLeaderboardScore()
 //SW_PY void GetDownloadLeaderboardEntry()
 //SW_PY void UpdateLeaderboardHandle()
 //SW_PY uint64 GetLeaderboardHandle()
