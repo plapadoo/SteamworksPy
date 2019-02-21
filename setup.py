@@ -6,5 +6,5 @@ setup(
     name="SteamworksPy",
     version="1.41",
     ext_modules=[steamworks_module],
-    py_modules=["SteamworksPy"],
+    py_modules=["steamworks"],
 )
